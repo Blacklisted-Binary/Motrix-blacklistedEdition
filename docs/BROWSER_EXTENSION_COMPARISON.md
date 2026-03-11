@@ -1,10 +1,11 @@
 # Browser Extension Comparison for Motrix-blacklistedEdition
 
-> **Status:** Research complete — awaiting user decision before any integration begins.
+> **Status:** Decision made — `motrix-webextension` is the primary integration. A detailed
+> technical enhancement plan (URL-pattern routing, fallback download, context menu, auto
+> path routing, side panel) that repurposes code from YAAW-for-Chrome and Aria2 Explorer
+> is in **[docs/MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md](./MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md)**.
 >
-> This document compares four browser extensions that can route browser downloads through aria2,
-> evaluates each against Motrix-blacklistedEdition's specific architecture, and provides a clear
-> recommendation on which to use (and whether to combine them).
+> This document provides the full four-extension comparison that led to that decision.
 
 ---
 
@@ -120,17 +121,30 @@ Edge, and Opera.
 - Multi-browser with a single codebase.
 
 #### Cons
-- Does not have the batch-export or cloud-sync features of Aria2 Explorer.
-- No multiple-RPC-server routing (only connects to one Motrix instance).
-- Requires Motrix to be running — cannot launch it from the extension.
+- Does not yet have multiple-RPC-server routing, auto-path routing, context menu, or
+  side-panel mode — but all of these are being added by repurposing YAAW-for-Chrome and
+  Aria2 Explorer code. See the
+  [enhancement plan](./MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md) for full details.
+- Requires Motrix to be running — cannot launch it from the extension. (Fallback-to-
+  browser-download, which handles this gracefully, is also covered in the plan.)
 
-#### Integration with Motrix-blacklistedEdition (once approved)
-The only Motrix-side work needed:
+#### Integration with Motrix-blacklistedEdition and enhancement plan
+The only Motrix desktop work needed:
 1. Add a "Browser Extension" banner/button in Preferences → Advanced that links to
    the Chrome Web Store and Firefox Add-ons pages.
 2. Add a "Copy RPC connection string" button next to the RPC Secret field so users
    can one-click-copy `http://127.0.0.1:16800/jsonrpc` with their token embedded.
 3. Update the `rpc-secret-tips` wiki link to point to the motrix-webextension setup guide.
+
+**Extension-side enhancements** (repurposing YAAW-for-Chrome and Aria2 Explorer code):
+- URL-pattern routing for multiple RPC servers
+- Auto download-path routing by URL pattern
+- Fallback to browser download when Motrix is unavailable
+- Right-click context menu for any link
+- Side panel display mode
+
+Full technical details with code samples for every one of these features are in
+**[docs/MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md](./MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md)**.
 
 #### Recommendation: ✅✅ **PRIMARY CHOICE — Purpose-built, actively maintained, Firefox support**
 
@@ -276,6 +290,8 @@ if aria2 is unavailable.
 
 ## Head-to-Head Comparison
 
+### Current state (before enhancements)
+
 | Feature | Camtd | motrix-webextension | YAAW-for-Chrome | Aria2 Explorer |
 |---------|:-----:|:-------------------:|:---------------:|:--------------:|
 | **Actively Maintained** | ❌ Dead | ✅ Jul 2025 | ✅ Mar 2025 | ✅ Active |
@@ -288,98 +304,106 @@ if aria2 is unavailable.
 | **Domain/size filtering** | ✅ | ✅ | ✅ | ✅ |
 | **Multiple RPC servers** | ❌ | ❌ | ✅ | ✅ |
 | **URL-pattern routing** | ❌ | ❌ | ✅ | ✅ |
+| **Auto download-path routing** | ❌ | ❌ | ❌ | ✅ |
 | **Cloud sync** | ❌ | ❌ | ❌ | ✅ |
 | **Batch page export** | ❌ | ❌ | ❌ | ✅ |
 | **Fallback download** | ❌ | ❌ | ❌ | ✅ |
+| **Context menu** | ❌ | ❌ | ❌ | ✅ |
 | **Inter-extension API** | ❌ | ❌ | ❌ | ✅ |
 | **Side panel mode** | ❌ | ❌ | ✅ | ❌ |
 | **Built-in UI** | AriaNg (old) | Material-UI | YAAW | AriaNG Enhanced |
 | **Design matches Motrix** | ❌ | ✅ | ❌ | ❌ |
+
+### After motrix-webextension enhancements (see [enhancement plan](./MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md))
+
+| Feature | motrix-webextension (enhanced) |
+|---------|:------------------------------:|
+| **Multiple RPC servers** | ✅ (Feature 1 — from YAAW) |
+| **URL-pattern routing** | ✅ (Feature 1 — from YAAW) |
+| **Auto download-path routing** | ✅ (Feature 2 — from Aria2 Explorer) |
+| **Fallback download** | ✅ (Feature 3 — from Aria2 Explorer) |
+| **Context menu** | ✅ (Feature 4 — from Aria2 Explorer) |
+| **Side panel mode** | ✅ (Feature 5 — from YAAW) |
+| Firefox support | ✅ (retained) |
+| Motrix-specific design | ✅✅ (retained) |
 
 ---
 
 ## Recommendation
 
 ### Short Answer
-**Use `motrix-webextension` as the primary integration.** It is the only option
-that was built specifically for Motrix, supports Firefox, and is actively maintained.
+**Use `motrix-webextension` as the primary integration and enhance it** by repurposing
+MIT-licensed code from YAAW-for-Chrome and Aria2 Explorer. This gives all the best
+features of all three active extensions in a single, Motrix-native, multi-browser package.
 Drop Camtd entirely — it is broken in modern Chrome.
 
-For power users who want extra features (batch export, cloud sync, fallback download),
-**also recommend `Aria2 Explorer`** as an optional alternative/complement.
+The complete technical enhancement plan (with code samples for every feature) is in
+**[docs/MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md](./MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md)**.
 
 ### Detailed Recommendation
 
-#### ✅✅ PRIMARY: `gautamkrishnar/motrix-webextension`
-**Why:** The most important integration to add. It is designed for Motrix, requires minimal
-configuration (users already know the RPC secret from Preferences → Advanced), works on
-Chrome, Firefox, Edge, and Opera, and is actively updated alongside Motrix's own releases.
+#### ✅✅ PRIMARY: `gautamkrishnar/motrix-webextension` + enhancements
+**Why:** The only option designed for Motrix, works on Chrome/Firefox/Edge/Opera, and
+actively maintained. With the planned enhancements it also gains every meaningful feature
+from YAAW-for-Chrome and Aria2 Explorer, eliminating the need for users to install
+multiple separate extensions.
 
-**Motrix-side work needed (all UI-only, no backend changes):**
-1. Add a "Browser Extension" card in **Preferences → Advanced** with:
-   - Links to Chrome Web Store + Firefox Add-ons pages.
-   - A "Copy RPC URL" button that copies `http://127.0.0.1:16800/jsonrpc` (or with token
-     embedded if a secret is configured: `http://token:SECRET@127.0.0.1:16800/jsonrpc`).
-2. Update the `rpc-secret-tips` help link to point at the motrix-webextension setup guide.
+**Features added by the enhancement plan:**
 
-#### ✅ RECOMMENDED COMPANION: `alexhua/Aria2 Explorer`
-**Why:** Complements motrix-webextension for Chrome/Edge users who want batch export,
-cloud sync, or fallback-to-browser capability. Mention it as a "power user alternative"
-in the setup documentation.
+| Feature | Borrowed from |
+|---------|--------------|
+| URL-pattern routing for multiple RPC servers | YAAW-for-Chrome |
+| Auto download-path routing | Aria2 Explorer |
+| Fallback to browser download | Aria2 Explorer |
+| Right-click context menu | Aria2 Explorer |
+| Side panel mode | YAAW-for-Chrome |
 
-**Motrix-side work needed:** Documentation only — no code changes.
-
-#### ⚠️ OPTIONAL: `acgotaku/YAAW-for-Chrome`
-**Why:** Good, actively maintained, and the URL-pattern routing is a genuinely useful
-advanced feature. Worth mentioning in documentation for users who run aria2 outside of
-Motrix (e.g., a separate home server). Not a priority to document unless explicitly
-requested.
+#### ⚠️ OPTIONAL REFERENCE: `acgotaku/YAAW-for-Chrome` and `alexhua/Aria2 Explorer`
+Both remain good extensions for users who do not use Motrix. They serve as the code
+sources for the enhancements above. Their URL-pattern routing and reliability features
+are worth documenting as the inspiration for the motrix-webextension improvements.
 
 #### ❌ SKIP: `jae-jae/Camtd`
-**Why:** Non-functional. Manifest v2 was permanently removed from Chrome in June 2024 and
-from Edge in 2024. Camtd has not been updated since December 2020 and will never receive a
-Manifest v3 upgrade from its current maintainer. There is no point integrating, documenting,
-or recommending it.
+Non-functional. Manifest v2 was permanently removed from Chrome in June 2024. Camtd has
+not been updated since December 2020. There is no point integrating, documenting, or
+recommending it.
 
 ---
 
-### Why Not Combine All Four?
+### Why Not Just Use Multiple Separate Extensions?
 
-| Scenario | Recommendation |
-|----------|----------------|
-| **Simple — just browser downloads to Motrix** | motrix-webextension only |
-| **Firefox + Chrome** | motrix-webextension (covers both) |
-| **Chrome power user** | motrix-webextension OR Aria2 Explorer |
-| **Multiple aria2 servers** | YAAW-for-Chrome |
-| **Most features possible** | Aria2 Explorer |
-| **Camtd** | ❌ Do not use |
+| Scenario | Old recommendation | New recommendation |
+|----------|-------------------|-------------------|
+| **Simple — just browser downloads to Motrix** | motrix-webextension only | motrix-webextension (enhanced) |
+| **Firefox + Chrome** | motrix-webextension | motrix-webextension (enhanced, both browsers) |
+| **Multiple aria2 servers** | YAAW-for-Chrome | motrix-webextension + URL-pattern routing |
+| **Fallback when Motrix is off** | Aria2 Explorer | motrix-webextension + fallback feature |
+| **Right-click any link** | Aria2 Explorer | motrix-webextension + context menu |
+| **Side panel** | YAAW-for-Chrome | motrix-webextension + side panel mode |
+| **Camtd** | ❌ Do not use | ❌ Still do not use |
 
-Combining motrix-webextension and Aria2 Explorer makes sense only if you want to offer
-both as documented options: the Motrix-native one for most users, and Aria2 Explorer for
-power users who want batch export and cloud sync.
+Rather than asking users to install two or three separate extensions (and configure each
+separately), enhancing motrix-webextension with these features gives the combined
+experience in a single, Motrix-native, properly maintained extension.
 
 ---
 
-## Approved Integration Plan (awaiting user go-ahead)
+## Approved Integration Plan
 
-Once approved, the minimal Motrix-side changes for `motrix-webextension` integration are:
+### Motrix desktop changes (UI-only, no backend work)
 
 1. **`src/renderer/components/Preference/Advanced.vue`** — Add a "Browser Extension"
-   section below the RPC Secret field with:
-   - Installation links for Chrome and Firefox.
-   - A button/display showing the full RPC connection string to paste into the extension.
-
+   section below the RPC Secret field with install links and a Copy RPC Connection String
+   button.
 2. **`src/shared/locales/en-US/preferences.js`** (and other locales) — Add translation
    keys for the new section labels.
+3. **`docs/UPGRADE_SUGGESTIONS.md`** — Already updated.
 
-3. **`docs/UPGRADE_SUGGESTIONS.md`** — Correct the outdated Camtd entry to reflect its
-   Manifest v2 deprecation status.
+### motrix-webextension changes (upstream contribution)
 
-4. **`README.md`** (optional) — Add a "Browser Integration" section linking to
-   `motrix-webextension`.
-
-**No aria2 configuration changes, no new npm packages, no backend changes.**
+See [docs/MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md](./MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md)
+for the full technical plan, code samples, and recommended implementation order.
 
 ---
 
-*Reply with which extension(s) to integrate and implementation will begin immediately.*
+*Implementation begins immediately upon approval.*

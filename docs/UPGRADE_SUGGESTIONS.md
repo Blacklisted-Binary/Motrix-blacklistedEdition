@@ -52,7 +52,7 @@ Key strengths: multi-connection downloads, selective torrent file download, auto
 > See [docs/BROWSER_EXTENSION_COMPARISON.md](./BROWSER_EXTENSION_COMPARISON.md) for
 > the full comparison.
 
-### `gautamkrishnar/motrix-webextension` — ✅ RECOMMENDED PRIMARY
+### `gautamkrishnar/motrix-webextension` — ✅ RECOMMENDED PRIMARY (with enhancements)
 
 **Repo:** https://github.com/gautamkrishnar/motrix-webextension  
 **License:** MIT  
@@ -63,7 +63,17 @@ The only browser extension **purpose-built for Motrix**. Intercepts browser down
 sends them to Motrix's aria2 RPC (port 16800). Actively maintained, multi-browser, and
 visually consistent with Motrix's design language.
 
-#### How to integrate with Motrix (once approved)
+Missing features from YAAW-for-Chrome and Aria2 Explorer are being added by repurposing
+their MIT-licensed code. See
+[docs/MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md](./MOTRIX_WEBEXTENSION_ENHANCEMENT_PLAN.md)
+for the full technical plan covering:
+- URL-pattern routing for multiple RPC servers (from YAAW)
+- Auto download-path routing (from Aria2 Explorer)
+- Fallback to browser download (from Aria2 Explorer)
+- Right-click context menu (from Aria2 Explorer)
+- Side panel display mode (from YAAW)
+
+#### How to integrate with Motrix
 1. Add a "Browser Extension" card in **Preferences → Advanced** with install links for
    Chrome Web Store and Firefox Add-ons.
 2. Add a "Copy RPC Connection String" button that copies
