@@ -2,7 +2,17 @@
 
 > **Status:** Research complete — awaiting user approval before any integration work begins.
 >
-> This document covers the proposed **jae-jae/Camtd** integration plus **15 additional open-source repositories** that could meaningfully upgrade, enhance, and extend Motrix-blacklistedEdition. Each entry includes a full description, repurpose plan, pros/cons, and a recommendation. **Nothing will be added to the codebase until you choose which repos to integrate.**
+> This document covers browser extension options and **15 additional open-source repositories**
+> that could meaningfully upgrade, enhance, and extend Motrix-blacklistedEdition. Each entry
+> includes a full description, repurpose plan, pros/cons, and a recommendation.
+> **Nothing will be added to the codebase until you choose which repos to integrate.**
+>
+> ⚠️ **The Camtd section below has been superseded.** See
+> [docs/BROWSER_EXTENSION_COMPARISON.md](./BROWSER_EXTENSION_COMPARISON.md) for an
+> up-to-date comparison of all four browser extension candidates (Camtd, motrix-webextension,
+> YAAW-for-Chrome, Aria2 Explorer) with current maintenance status and a clear recommendation.
+> **Short version: Camtd is broken on modern Chrome (Manifest v2 removed June 2024) —
+> use `gautamkrishnar/motrix-webextension` instead.**
 
 ---
 
@@ -18,39 +28,52 @@ Key strengths: multi-connection downloads, selective torrent file download, auto
 
 ---
 
-## Proposed Camtd Integration
+## Browser Extension Integration
 
-### `jae-jae/Camtd` — Chrome Multi-Threaded Download Manager (Browser Extension)
+> ⚠️ **Full, up-to-date comparison of all four browser extension candidates is in
+> [docs/BROWSER_EXTENSION_COMPARISON.md](./BROWSER_EXTENSION_COMPARISON.md).** That
+> document covers Camtd, motrix-webextension, YAAW-for-Chrome, and Aria2 Explorer with
+> current maintenance status, feature matrices, and a concrete recommendation. Read it
+> before making any decision here.
+
+### `jae-jae/Camtd` — ❌ DEPRECATED — Do Not Use
 
 **Repo:** https://github.com/jae-jae/Camtd  
+**License:** MIT
+
+> ⛔ **Camtd is non-functional on all modern Chrome/Chromium browsers.** It was built on
+> Chrome Extension **Manifest v2**, which Google permanently removed from Chrome in
+> **June 2024**. The project has not been updated since **December 2020** and will not
+> receive a Manifest v3 upgrade. Attempting to install it will fail with a manifest
+> version error.
+>
+> **Replacement:** Use `gautamkrishnar/motrix-webextension` — it is purpose-built for
+> Motrix, works on Chrome, Firefox, Edge, and Opera, and is actively maintained.
+> See [docs/BROWSER_EXTENSION_COMPARISON.md](./BROWSER_EXTENSION_COMPARISON.md) for
+> the full comparison.
+
+### `gautamkrishnar/motrix-webextension` — ✅ RECOMMENDED PRIMARY
+
+**Repo:** https://github.com/gautamkrishnar/motrix-webextension  
 **License:** MIT  
-**Language:** JavaScript (Chrome Extensions API + Aria2 RPC)
+**Last update:** July 2025  
+**Browser support:** Chrome, Firefox, Edge, Opera
 
-#### What it does
-Camtd is a Chrome/Chromium browser extension that **intercepts download requests** from the browser (HTTP, HTTPS, FTP, SFTP) and redirects them to a local aria2 instance via its JSON-RPC API. It ships with an embedded AriaNg frontend and supports token/password RPC auth, blacklist/whitelist rules, and real-time speed monitoring.
+The only browser extension **purpose-built for Motrix**. Intercepts browser downloads and
+sends them to Motrix's aria2 RPC (port 16800). Actively maintained, multi-browser, and
+visually consistent with Motrix's design language.
 
-#### How to combine with Motrix
-Motrix already runs aria2 as a local subprocess on port **16800** with a secret token. Camtd can be pointed at this same aria2 RPC endpoint, meaning **every browser download is captured and managed inside Motrix's UI** — one unified download manager for both browser and desktop sources.
+#### How to integrate with Motrix (once approved)
+1. Add a "Browser Extension" card in **Preferences → Advanced** with install links for
+   Chrome Web Store and Firefox Add-ons.
+2. Add a "Copy RPC Connection String" button that copies
+   `http://token:SECRET@127.0.0.1:16800/jsonrpc` with the user's current secret token
+   pre-populated, ready to paste into the extension settings.
+3. Update the `rpc-secret-tips` link to point at the motrix-webextension setup guide.
 
-Integration steps (once approved):
-1. Expose the aria2 RPC secret token in Motrix's Settings UI so users can easily copy it into Camtd.
-2. Add a "Browser Extension" section in Preferences showing the correct RPC URL (`http://localhost:16800/jsonrpc`) and token.
-3. Optionally bundle a pre-configured Camtd link/download in the About page or README.
-4. Ensure the aria2 `--enable-rpc` flag and `--rpc-listen-all` setting are compatible with external connections (currently restricted to localhost — fine for Camtd).
+No aria2 configuration changes, no new npm packages, no backend changes required.
 
-#### Pros
-- Zero backend work; Camtd talks to the aria2 that is already running.
-- Multi-threaded acceleration for every browser download automatically.
-- Camtd is battle-tested and actively maintained.
-- Supports blacklist/whitelist to exclude certain sites or file types from interception.
-
-#### Cons
-- Chrome/Chromium only — Firefox users are not covered.
-- Requires the user to manually install the Chrome extension from the Web Store.
-- No deep UI integration without custom work on the Camtd side.
-
-#### Recommendation ✅ **YES — High Value, Low Effort**
-This is the highest-value integration with essentially zero code changes on the Motrix side (just documentation and a settings UI note). It turns Motrix into a whole-system download manager instead of a standalone tool.
+#### Recommendation ✅ **YES — Primary browser extension choice**
 
 ---
 
