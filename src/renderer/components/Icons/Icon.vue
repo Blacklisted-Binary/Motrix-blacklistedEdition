@@ -139,7 +139,7 @@
       }
     },
     mounted () {
-      if (!this.name && !this.$slots.default) {
+      if (!this.name) {
         console.warn('Invalid prop: prop "name" is required.')
       }
     },
