@@ -139,29 +139,9 @@
       }
     },
     mounted () {
-      if (!this.name && this.$children.length === 0) {
+      if (!this.name && !this.$slots.default) {
         console.warn('Invalid prop: prop "name" is required.')
-        return
       }
-
-      if (this.icon) {
-        return
-      }
-
-      let width = 0
-      let height = 0
-      this.$children.forEach((child) => {
-        child.outerScale = this.normalizedScale
-
-        width = Math.max(width, child.width)
-        height = Math.max(height, child.height)
-      })
-      this.childrenWidth = width
-      this.childrenHeight = height
-      this.$children.forEach((child) => {
-        child.x = (width - child.width) / 2
-        child.y = (height - child.height) / 2
-      })
     },
     register (data) {
       for (const name in data) {

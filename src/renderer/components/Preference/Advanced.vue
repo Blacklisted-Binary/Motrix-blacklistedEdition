@@ -229,9 +229,7 @@
                 v-model="form.rpcListenPort"
                 @change="onRpcListenPortChange"
               >
-                <i slot="append" @click.prevent="onRpcPortDiceClick">
-                  <mo-icon name="dice" width="12" height="12" />
-                </i>
+                <template #append><i @click.prevent="onRpcPortDiceClick"><mo-icon name="dice" width="12" height="12" /></i></template>
               </el-input>
             </el-col>
           </el-row>
@@ -250,9 +248,7 @@
                 :maxlength="64"
                 v-model="form.rpcSecret"
               >
-                <i slot="append" @click.prevent="onRpcSecretDiceClick">
-                  <mo-icon name="dice" width="12" height="12" />
-                </i>
+                <template #append><i @click.prevent="onRpcSecretDiceClick"><mo-icon name="dice" width="12" height="12" /></i></template>
               </el-input>
               <div class="el-form-item__info" style="margin-top: 8px;">
                 <a target="_blank" href="https://github.com/agalwood/Motrix/wiki/RPC" rel="noopener noreferrer">
@@ -295,9 +291,7 @@
                 :maxlength="8"
                 v-model="form.listenPort"
               >
-                <i slot="append" @click.prevent="onBtPortDiceClick">
-                  <mo-icon name="dice" width="12" height="12" />
-                </i>
+                <template #append><i @click.prevent="onBtPortDiceClick"><mo-icon name="dice" width="12" height="12" /></i></template>
               </el-input>
             </el-col>
           </el-row>
@@ -315,9 +309,7 @@
                 :maxlength="8"
                 v-model="form.dhtListenPort"
               >
-                <i slot="append" @click.prevent="onDhtPortDiceClick">
-                  <mo-icon name="dice" width="12" height="12" />
-                </i>
+                <template #append><i @click.prevent="onDhtPortDiceClick"><mo-icon name="dice" width="12" height="12" /></i></template>
               </el-input>
             </el-col>
           </el-row>
@@ -372,21 +364,17 @@
           <el-col class="form-item-sub" :span="24">
             {{ $t('preferences.aria2-conf-path') }}
             <el-input placeholder="" disabled v-model="aria2ConfPath">
-              <mo-show-in-folder
-                slot="append"
-                v-if="isRenderer"
+              <template #append><mo-show-in-folder v-if="isRenderer"
                 :path="aria2ConfPath"
-              />
+              /></template>
             </el-input>
           </el-col>
           <el-col class="form-item-sub" :span="24">
             {{ $t('preferences.download-session-path') }}
             <el-input placeholder="" disabled v-model="sessionPath">
-              <mo-show-in-folder
-                slot="append"
-                v-if="isRenderer"
+              <template #append><mo-show-in-folder v-if="isRenderer"
                 :path="sessionPath"
-              />
+              /></template>
             </el-input>
           </el-col>
           <el-col class="form-item-sub" :span="24">
@@ -394,11 +382,9 @@
             <el-row :gutter="16">
               <el-col :span="18">
                 <el-input placeholder="" disabled v-model="logPath">
-                  <mo-show-in-folder
-                  slot="append"
-                  v-if="isRenderer"
+                  <template #append><mo-show-in-folder v-if="isRenderer"
                   :path="logPath"
-                  />
+                  /></template>
                 </el-input>
               </el-col>
               <el-col :span="6">

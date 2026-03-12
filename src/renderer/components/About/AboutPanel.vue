@@ -2,12 +2,14 @@
   <el-dialog
     custom-class="app-about-dialog"
     width="61.8vw"
-    :visible="visible"
+    v-model="dialogVisible"
     @open="handleOpen"
     :before-close="handleClose"
     @closed="handleClosed">
     <mo-app-info :version="version" :engine="engineInfo" />
-    <mo-copyright slot="footer" />
+    <template #footer>
+      <mo-copyright />
+    </template>
   </el-dialog>
 </template>
 
@@ -36,6 +38,14 @@
       }
     },
     computed: {
+      dialogVisible: {
+        get () { return this.visible },
+        set (val) {
+          if (!val) {
+            this.$store.dispatch('app/hideAboutPanel')
+          }
+        }
+      },
       ...mapState('app', {
         engineInfo: state => state.engineInfo
       })

@@ -3,24 +3,25 @@
 </template>
 
 <script>
+  import { ipcRenderer } from 'electron'
   import { commands } from '@/components/CommandManager/instance'
 
   export default {
     name: 'mo-ipc',
     methods: {
       bindIpcEvents () {
-        this.$electron.ipcRenderer.on('command', (event, command, ...args) => {
+        ipcRenderer.on('command', (event, command, ...args) => {
           commands.execute(command, ...args)
         })
       },
       unbindIpcEvents () {
-        this.$electron.ipcRenderer.removeAllListeners('command')
+        ipcRenderer.removeAllListeners('command')
       }
     },
     created () {
       this.bindIpcEvents()
     },
-    destroyed () {
+    unmounted () {
       this.unbindIpcEvents()
     }
   }

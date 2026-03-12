@@ -4,6 +4,7 @@
 
 <script>
   import is from 'electron-is'
+  import { ipcRenderer } from 'electron'
   import { mapState } from 'vuex'
   import api from '@/api'
   import {
@@ -42,18 +43,18 @@
     watch: {
       speed (val) {
         const { uploadSpeed, downloadSpeed } = this
-        this.$electron.ipcRenderer.send('event', 'speed-change', {
+        ipcRenderer.send('event', 'speed-change', {
           uploadSpeed,
           downloadSpeed
         })
       },
       downloading (val, oldVal) {
         if (val !== oldVal && this.isRenderer) {
-          this.$electron.ipcRenderer.send('event', 'download-status-change', val)
+          ipcRenderer.send('event', 'download-status-change', val)
         }
       },
       progress (val) {
-        this.$electron.ipcRenderer.send('event', 'progress-change', val)
+        ipcRenderer.send('event', 'progress-change', val)
       }
     },
     methods: {
@@ -153,7 +154,7 @@
 
         const path = getTaskFullPath(task)
         this.showTaskCompleteNotify(task, isBT, path)
-        this.$electron.ipcRenderer.send('event', 'task-download-complete', task, path)
+        ipcRenderer.send('event', 'task-download-complete', task, path)
       },
       showTaskCompleteNotify (task, isBT, path) {
         const taskName = getTaskName(task)
@@ -250,7 +251,7 @@
         this.startPolling()
       }, 100)
     },
-    destroyed () {
+    unmounted () {
       this.$store.dispatch('task/saveSession')
 
       this.unbindEngineEvents()
