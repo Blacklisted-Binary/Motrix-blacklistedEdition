@@ -4,6 +4,7 @@ const userKeys = [
   'auto-sync-tracker',
   'cookie',
   'enable-upnp',
+  'download-scheduler',
   'engine-bin-path',
   'engine-max-connection-per-server',
   'favorite-directories',
