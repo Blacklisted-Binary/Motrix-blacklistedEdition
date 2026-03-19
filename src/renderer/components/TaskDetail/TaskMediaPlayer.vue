@@ -39,6 +39,7 @@
 
 <script>
   import Plyr from 'plyr'
+  import { pathToFileURL } from 'node:url'
   import 'plyr/dist/plyr.css'
   import { AUDIO_SUFFIXES, VIDEO_SUFFIXES } from '@shared/constants'
 
@@ -105,8 +106,11 @@
         if (!fullPath) {
           return ''
         }
-        const encoded = encodeURI(fullPath)
-        return `file://${encoded}`
+        try {
+          return pathToFileURL(fullPath).href
+        } catch (err) {
+          return ''
+        }
       }
     }
   }

@@ -83,10 +83,12 @@
     getFileExtension
   } from '@shared/utils'
   import {
+    AUDIO_SUFFIXES,
     EMPTY_STRING,
     NONE_SELECTED_FILES,
     SELECTED_ALL_FILES,
-    TASK_STATUS
+    TASK_STATUS,
+    VIDEO_SUFFIXES
   } from '@shared/constants'
   import TaskItemActions from '@/components/Task/TaskItemActions'
   import TaskGeneral from './TaskGeneral'
@@ -201,7 +203,7 @@
         const { fileList } = this
         return fileList.filter((item) => {
           const ext = (item.extension || '').toLowerCase()
-          return ['.mp3', '.m4a', '.ogg', '.wav', '.aac', '.flac', '.mp4', '.m4v', '.mkv', '.mov', '.webm', '.avi'].includes(ext)
+          return AUDIO_SUFFIXES.includes(ext) || VIDEO_SUFFIXES.includes(ext)
         })
       },
       enableBuiltInMediaPlayer () {
