@@ -37,6 +37,8 @@ import TrayManager from './ui/TrayManager'
 import DockManager from './ui/DockManager'
 import ThemeManager from './ui/ThemeManager'
 
+const GROK_API_ENDPOINT = 'https://api.x.ai/v1/chat/completions'
+
 export default class Application extends EventEmitter {
   constructor () {
     super()
@@ -547,6 +549,140 @@ export default class Application extends EventEmitter {
     return value
   }
 
+  selectRoutingModelByMode (mode = 'balanced') {
+    if (mode === 'privacy-first') {
+      return { latency: 0.25, throughput: 0.25, privacy: 0.5 }
+    }
+    if (mode === 'speed-first') {
+      return { latency: 0.35, throughput: 0.55, privacy: 0.1 }
+    }
+    return { latency: 0.4, throughput: 0.4, privacy: 0.2 }
+  }
+
+  async getAIRoutingWeights (policy = {}) {
+    const aiEnabled = Boolean(policy['ai-enabled'])
+    if (!aiEnabled) {
+      return null
+    }
+
+    const apiKey = process.env.GROK_API_KEY
+    if (!apiKey) {
+      logger.warn('[Motrix] GROK_API_KEY is missing, using deterministic routing fallback')
+      return null
+    }
+    const normalizedApiKey = String(apiKey).trim()
+    if (!normalizedApiKey.startsWith('gsk_') || normalizedApiKey.length < 20) {
+      logger.warn('[Motrix] GROK_API_KEY format looks invalid, using deterministic routing fallback')
+      return null
+    }
+
+    const model = policy['ai-model'] || 'grok-2-latest'
+    const mode = policy.mode || 'balanced'
+    const defaultWeights = this.selectRoutingModelByMode(mode)
+    const interfaces = Array.isArray(policy.interfaces) ? policy.interfaces : []
+    const compactInterfaces = interfaces.slice(0, 8).map((iface = {}) => ({
+      name: iface.name || '',
+      metered: Boolean(iface.metered),
+      latencyMs: iface.latencyMs,
+      throughputMbps: iface.throughputMbps,
+      privacyLevel: iface.privacyLevel
+    }))
+
+    if (typeof fetch !== 'function') {
+      logger.warn('[Motrix] fetch API unavailable, using deterministic routing fallback')
+      return null
+    }
+
+    try {
+      const response = await fetch(GROK_API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${normalizedApiKey}`
+        },
+        body: JSON.stringify({
+          model,
+          temperature: 0,
+          response_format: { type: 'json_object' },
+          messages: [
+            {
+              role: 'system',
+              content: 'Return only JSON with camelCase keys: {"latencyWeight":number,"throughputWeight":number,"privacyWeight":number}. Values must be 0..1.'
+            },
+            {
+              role: 'user',
+              content: JSON.stringify({
+                mode,
+                defaultWeights,
+                interfaces: compactInterfaces
+              })
+            }
+          ]
+        })
+      })
+
+      if (!response.ok) {
+        logger.warn(`[Motrix] grok routing request failed with status ${response.status}, using fallback`)
+        return null
+      }
+
+      const data = await response.json()
+      const content = data?.choices?.[0]?.message?.content
+      if (!content) {
+        logger.warn('[Motrix] grok routing response missing content, using fallback')
+        return null
+      }
+
+      let parsed = null
+      try {
+        parsed = JSON.parse(content)
+      } catch (e) {
+        logger.warn('[Motrix] grok routing JSON parse failed, using fallback')
+        return null
+      }
+
+      const normalized = {
+        latencyWeight: parsed.latencyWeight ?? parsed.latency_weight,
+        throughputWeight: parsed.throughputWeight ?? parsed.throughput_weight,
+        privacyWeight: parsed.privacyWeight ?? parsed.privacy_weight
+      }
+
+      const latencyWeight = this.toNumberInRange(
+        normalized.latencyWeight,
+        0,
+        1,
+        defaultWeights.latency
+      )
+      const throughputWeight = this.toNumberInRange(
+        normalized.throughputWeight,
+        0,
+        1,
+        defaultWeights.throughput
+      )
+      const privacyWeight = this.toNumberInRange(
+        normalized.privacyWeight,
+        0,
+        1,
+        defaultWeights.privacy
+      )
+
+      const sum = latencyWeight + throughputWeight + privacyWeight
+      if (!Number.isFinite(sum) || sum <= 0) {
+        logger.warn('[Motrix] grok routing invalid weight sum, using fallback')
+        return null
+      }
+
+      return {
+        latencyWeight: latencyWeight / sum,
+        throughputWeight: throughputWeight / sum,
+        privacyWeight: privacyWeight / sum
+      }
+    } catch (err) {
+      logger.warn('[Motrix] grok routing request error, using fallback:', err.message)
+      return null
+    }
+  }
+
   toNumberInRange (value, min, max, fallback) {
     const n = Number(value)
     if (!Number.isFinite(n)) {
@@ -595,7 +731,7 @@ export default class Application extends EventEmitter {
     return score
   }
 
-  computeBestRoutingProfile (policy = {}) {
+  async computeBestRoutingProfile (policy = {}) {
     const interfaces = Array.isArray(policy.interfaces) ? policy.interfaces : []
     if (interfaces.length === 0) {
       return null
@@ -603,11 +739,13 @@ export default class Application extends EventEmitter {
 
     const mode = policy.mode || 'balanced'
     const allowMetered = Boolean(policy['allow-metered'])
-    const weights = {
+    const configuredWeights = {
       latencyWeight: this.normalizeWeight(policy['latency-weight'], 0.45),
       throughputWeight: this.normalizeWeight(policy['throughput-weight'], 0.45),
       privacyWeight: this.normalizeWeight(policy['privacy-weight'], 0.1)
     }
+    const aiWeights = await this.getAIRoutingWeights(policy)
+    const weights = aiWeights || configuredWeights
 
     const candidate = interfaces
       .filter((iface) => iface && iface.enabled !== false)
@@ -630,7 +768,7 @@ export default class Application extends EventEmitter {
     }
   }
 
-  applyNetworkRoutingPolicy () {
+  async applyNetworkRoutingPolicy () {
     const policy = this.configManager.getUserConfig('network-routing-policy', {})
     const enabled = Boolean(policy && policy.enabled)
     if (!enabled) {
@@ -644,7 +782,7 @@ export default class Application extends EventEmitter {
       return
     }
 
-    const profile = this.computeBestRoutingProfile(policy)
+    const profile = await this.computeBestRoutingProfile(policy)
     if (!profile) {
       logger.warn('[Motrix] network routing policy enabled but no valid interface candidates')
       return

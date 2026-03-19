@@ -134,6 +134,8 @@ export default class ConfigManager {
         'network-routing-policy': {
           'enabled': false,
           'mode': 'balanced',
+          'ai-enabled': false,
+          'ai-model': 'grok-2-latest',
           'allow-metered': false,
           'latency-weight': 0.45,
           'throughput-weight': 0.45,

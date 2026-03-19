@@ -121,6 +121,22 @@ Recommended controllable policy dimensions:
 
 Implementation note: start with deterministic scoring + heuristics, then add optional AI ranking over the same explicit features.
 
+#### Grok fallback integration (safe secret handling)
+
+This fork supports optional Grok-assisted routing weight suggestions for `network-routing-policy`.
+
+- Enable with `network-routing-policy.ai-enabled=true`.
+- Optional model override via `network-routing-policy.ai-model` (default `grok-2-latest`).
+  - Tested baseline: `grok-2-latest`.
+  - If an unsupported/invalid model string is provided (unknown model id, unauthorized model, or typo), the request fails and deterministic fallback is used automatically.
+  - See xAI model naming docs when selecting custom model ids.
+- Provide API key **only** through environment variable:
+  - `GROK_API_KEY=...`
+
+If Grok request fails, response is invalid, or key is missing, the app automatically falls back to deterministic local routing weights and continues without interruption.
+
+> Security note: never hardcode API keys in repository files, commits, or logs.
+
 ### Scheduler support
 
 This fork now includes a built-in off-peak scheduler hook in the main process:
