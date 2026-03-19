@@ -10,39 +10,39 @@
         <el-table-column
           :label="`${$t('task.task-peer-host')}: `"
           min-width="140">
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ `${scope.row.ip}:${scope.row.port}` }}
           </template>
         </el-table-column>
         <el-table-column
           :label="`${$t('task.task-peer-client')}: `"
           min-width="125">
-          <template slot-scope="scope">
-            {{ scope.row.peerId | peerIdParser }}
+          <template #default="scope">
+            {{ peerIdParser(scope.row.peerId) }}
           </template>
         </el-table-column>
         <el-table-column
           :label="`%`"
           align="right"
           width="55">
-          <template slot-scope="scope">
-            {{ scope.row.bitfield | bitfieldToPercent }}%
+          <template #default="scope">
+            {{ bitfieldToPercent(scope.row.bitfield) }}%
           </template>
         </el-table-column>
         <el-table-column
           :label="`↑`"
           align="right"
           width="90">
-          <template slot-scope="scope">
-            {{ scope.row.uploadSpeed | bytesToSize }}/s
+          <template #default="scope">
+            {{ bytesToSize(scope.row.uploadSpeed) }}/s
           </template>
         </el-table-column>
         <el-table-column
           :label="`↓`"
           align="right"
           width="90">
-          <template slot-scope="scope">
-            {{ scope.row.downloadSpeed | bytesToSize }}/s
+          <template #default="scope">
+            {{ bytesToSize(scope.row.downloadSpeed) }}/s
           </template>
         </el-table-column>
       </el-table>
@@ -59,11 +59,6 @@
 
   export default {
     name: 'mo-task-peers',
-    filters: {
-      bitfieldToPercent,
-      bytesToSize,
-      peerIdParser
-    },
     props: {
       peers: {
         type: Array,
@@ -71,13 +66,11 @@
           return []
         }
       }
+    },
+    methods: {
+      bitfieldToPercent,
+      bytesToSize,
+      peerIdParser
     }
   }
 </script>
-
-<style lang="scss">
-.el-table.mo-peer-table .cell {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-</style>

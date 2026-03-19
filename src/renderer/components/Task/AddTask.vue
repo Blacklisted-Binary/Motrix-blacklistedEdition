@@ -2,7 +2,7 @@
   <el-dialog
     custom-class="tab-title-dialog add-task-dialog"
     width="67vw"
-    :visible="visible"
+    v-model="dialogVisible"
     :top="dialogTop"
     :show-close="false"
     :before-close="beforeClose"
@@ -70,15 +70,16 @@
           v-model="form.dir"
           :readonly="isMas"
         >
-          <mo-history-directory
-            slot="prepend"
-            @selected="handleHistoryDirectorySelected"
-          />
-          <mo-select-directory
-            v-if="isRenderer"
-            slot="append"
-            @selected="handleNativeDirectorySelected"
-          />
+          <template #prepend>
+            <mo-history-directory
+              @selected="handleHistoryDirectorySelected"
+            />
+          </template>
+          <template v-if="isRenderer" #append>
+            <mo-select-directory
+              @selected="handleNativeDirectorySelected"
+            />
+          </template>
         </el-input>
       </el-form-item>
       <div class="task-advanced-options" v-if="showAdvanced">
@@ -162,15 +163,17 @@
         </el-form-item>
       </div>
     </el-form>
-    <button
-      slot="title"
-      type="button"
-      class="el-dialog__headerbtn"
-      aria-label="Close"
-      @click="handleClose">
-      <i class="el-dialog__close el-icon el-icon-close"></i>
-    </button>
-    <div slot="footer" class="dialog-footer">
+    <template #header>
+      <button
+        type="button"
+        class="el-dialog__headerbtn"
+        aria-label="Close"
+        @click="handleClose">
+        <i class="el-dialog__close">✕</i>
+      </button>
+    </template>
+    <template #footer>
+      <div class="dialog-footer">
       <el-row>
         <el-col :span="9" :xs="9">
           <el-checkbox class="chk" v-model="showAdvanced">
@@ -189,7 +192,8 @@
           </el-button>
         </el-col>
       </el-row>
-    </div>
+      </div>
+    </template>
   </el-dialog>
 </template>
 
@@ -235,6 +239,14 @@
       }
     },
     computed: {
+      dialogVisible: {
+        get () { return this.visible },
+        set (val) {
+          if (!val) {
+            this.$store.dispatch('app/hideAddTaskDialog')
+          }
+        }
+      },
       isRenderer: () => is.renderer(),
       isMas: () => is.mas(),
       ...mapState('app', {

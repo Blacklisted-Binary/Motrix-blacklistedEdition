@@ -7,7 +7,7 @@
     :with-header="true"
     :show-close="true"
     :destroy-on-close="true"
-    :visible="visible"
+    v-model="drawerVisible"
     :before-close="handleClose"
     @closed="handleClosed"
   >
@@ -19,23 +19,23 @@
       @tab-click="handleTabClick"
     >
       <el-tab-pane name="general">
-        <span class="task-detail-tab-label" slot="label"><i class="el-icon-info"></i></span>
+        <template #label><span class="task-detail-tab-label">ℹ</span></template>
         <mo-task-general :task="task" />
       </el-tab-pane>
       <el-tab-pane name="activity" lazy>
-        <span class="task-detail-tab-label" slot="label"><i class="el-icon-s-grid"></i></span>
+        <template #label><span class="task-detail-tab-label">⊞</span></template>
         <mo-task-activity ref="taskGraphic" :task="task" />
       </el-tab-pane>
       <el-tab-pane name="trackers" lazy v-if="isBT">
-        <span class="task-detail-tab-label" slot="label"><i class="el-icon-discover"></i></span>
+        <template #label><span class="task-detail-tab-label">◉</span></template>
         <mo-task-trackers :task="task" />
       </el-tab-pane>
       <el-tab-pane name="peers" lazy v-if="isBT">
-        <span class="task-detail-tab-label" slot="label"><i class="el-icon-s-custom"></i></span>
+        <template #label><span class="task-detail-tab-label">👤</span></template>
         <mo-task-peers :peers="peers" />
       </el-tab-pane>
       <el-tab-pane name="files" lazy>
-        <span class="task-detail-tab-label" slot="label"><i class="el-icon-files"></i></span>
+        <template #label><span class="task-detail-tab-label">📄</span></template>
         <mo-task-files
           ref="detailFileList"
           mode="DETAIL"
@@ -137,6 +137,14 @@
       }
     },
     computed: {
+      drawerVisible: {
+        get () { return this.visible },
+        set (val) {
+          if (!val) {
+            this.$store.dispatch('task/hideTaskDetail')
+          }
+        }
+      },
       isRenderer: () => is.renderer(),
       isBT () {
         return checkTaskIsBT(this.task)
@@ -180,7 +188,7 @@
     mounted () {
       window.addEventListener('resize', this.handleAppResize)
     },
-    destroyed () {
+    unmounted () {
       window.removeEventListener('resize', this.handleAppResize)
       cached.files = []
     },

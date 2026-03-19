@@ -16,13 +16,13 @@
           <span class="mo-directory-path" :title="directory">{{directory}}</span>
           <span class="mo-directory-actions">
             <i
-              class="el-icon-star-off icon-history-favorited"
+              class="icon-history-favorited"
               @click.stop="() => handleCancelFavoriteItem(directory)"
-            />
+            >★</i>
             <i
-              class="el-icon-delete icon-history-remove"
+              class="icon-history-remove"
               @click.stop="() => handleRemoveItem(directory)"
-            />
+            >✕</i>
           </span>
         </li>
       </ul>
@@ -37,22 +37,21 @@
           <span class="mo-directory-actions">
             <i
               v-if="showFavoriteAction"
-              class="el-icon-star-off icon-history-favorite"
+              class="icon-history-favorite"
               @click.stop="() => handleFavoriteItem(directory)"
-            />
+            >☆</i>
             <i
-              class="el-icon-delete icon-history-remove"
+              class="icon-history-remove"
               @click.stop="() => handleRemoveItem(directory)"
-            />
+            >✕</i>
           </span>
         </li>
       </ul>
-      <el-button
-        slot="reference"
-        :disabled="popoverDisabled"
-      >
-        <i class="el-icon-time" />
-      </el-button>
+      <template #reference>
+        <el-button :disabled="popoverDisabled">
+          <span>⏱</span>
+        </el-button>
+      </template>
     </el-popover>
   </div>
 </template>
@@ -193,6 +192,8 @@
       padding: 3px;
       margin-right: 3px;
       display: inline-block;
+      font-style: normal;
+      cursor: pointer;
     }
   }
   .icon-history-favorite {
