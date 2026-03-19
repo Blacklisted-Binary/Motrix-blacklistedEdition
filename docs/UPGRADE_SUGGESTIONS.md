@@ -1,11 +1,11 @@
 # Upgrade & Enhancement Suggestions for Motrix-blacklistedEdition
 
-> **Status:** Research complete — awaiting user approval before any integration work begins.
+> **Status:** Research complete — selected repositories can now proceed to integration.
 >
 > This document covers browser extension options and **15 additional open-source repositories**
 > that could meaningfully upgrade, enhance, and extend Motrix-blacklistedEdition. Each entry
 > includes a full description, repurpose plan, pros/cons, and a recommendation.
-> **Nothing will be added to the codebase until you choose which repos to integrate.**
+> **Vue 3-dependent upgrades are now unblocked** and can be implemented from the selected repositories.
 >
 > ⚠️ **The Camtd section below has been superseded.** See
 > [docs/BROWSER_EXTENSION_COMPARISON.md](./BROWSER_EXTENSION_COMPARISON.md) for an
@@ -20,7 +20,7 @@
 
 **Motrix-blacklistedEdition** is a full-featured desktop download manager built on:
 - **Electron 22** (cross-platform desktop shell)
-- **Vue.js 2 + Vuex + Element-UI** (frontend)
+- **Vue.js 3 + Vuex + Element Plus** (frontend)
 - **aria2** (download engine, spawned as a subprocess, communicating over WebSocket RPC at port 16800)
 
 Supported protocols: HTTP/HTTPS, FTP, BitTorrent, Magnet links, Thunder.  
@@ -390,7 +390,7 @@ Tauri migration is the right long-term direction for a modern Electron app. Howe
 VueUse is a collection of 200+ utility functions for the Vue Composition API (Vue 3). It includes composables for state management, browser APIs, sensors, animations, network, storage, and more — all reactive and tree-shakeable.
 
 #### How to repurpose for Motrix
-- As part of a **Vue 2 → Vue 3 migration**, VueUse provides drop-in utilities for localStorage (replacing electron-store in renderer), dark mode detection (`useDark`/`useColorMode`), clipboard (`useClipboard`), network status (`useNetwork`), drag-and-drop (`useDraggable`), and file system access.
+- With the app now on **Vue 3**, VueUse provides drop-in utilities for localStorage (replacing electron-store in renderer), dark mode detection (`useDark`/`useColorMode`), clipboard (`useClipboard`), network status (`useNetwork`), drag-and-drop (`useDraggable`), and file system access.
 - Replace custom utility code in `src/renderer/utils/` with well-tested VueUse composables.
 - `useWebSocket` could replace the custom aria2 WebSocket client in the renderer.
 - `useSchedule` (or `useIntervalFn`) to clean up the tracker-update timers.
@@ -402,11 +402,11 @@ VueUse is a collection of 200+ utility functions for the Vue Composition API (Vu
 - Excellent documentation and TypeScript support.
 
 #### Cons
-- **Requires migrating to Vue 3 first** — Motrix currently uses Vue 2.7. VueUse@10+ is Vue 3 only (VueUse@9 supports Vue 2.7 via the `@vueuse/core` compatibility layer).
+- Requires adopting VueUse APIs incrementally across existing renderer modules.
 - Migration effort is moderate.
 
-#### Recommendation ✅ **YES — as part of Vue 2 → 3 migration**
-VueUse v9 supports Vue 2.7 (what Motrix uses) via the bridge package. Start using it now for new composables, and it will already be in place when you migrate to Vue 3.
+#### Recommendation ✅ **YES — implement now on Vue 3**
+Use VueUse v10+ for new composables and progressively replace custom renderer utilities where it improves maintainability and reliability.
 
 ---
 
@@ -606,7 +606,7 @@ If I had to pick the best short-term set of integrations for maximum impact with
 2. **node-schedule** — Scheduled downloads (highly requested feature)
 3. **file-type** — Security + auto-categorize (very low effort)
 4. **p-queue** — Priority downloads
-5. **vueuse** — Utility cleanup, immediate Vue 3 preparation
+5. **vueuse** — Utility cleanup, immediate Vue 3 optimization
 
 **Phase 2 — Major Features (1–4 weeks each):**
 6. **yt-dlp** — 1000+ site downloads (killer feature)
@@ -624,4 +624,4 @@ If I had to pick the best short-term set of integrations for maximum impact with
 
 ---
 
-*Please reply with which repositories you'd like to integrate, and implementation work will begin immediately.*
+*Selected repositories can now move directly into implementation planning and execution.*
