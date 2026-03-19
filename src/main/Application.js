@@ -9,6 +9,7 @@ import {
   APP_RUN_MODE,
   AUTO_SYNC_TRACKER_INTERVAL,
   AUTO_CHECK_UPDATE_INTERVAL,
+  ONE_MINUTE,
   PROXY_SCOPES
 } from '@shared/constants'
 import { checkIsNeedRun } from '@shared/utils'
@@ -61,6 +62,9 @@ export default class Application extends EventEmitter {
     this.startEngine()
 
     this.initEngineClient()
+
+    this.initDownloadScheduler()
+    this.initNetworkRoutingManager()
 
     this.initThemeManager()
 
@@ -192,6 +196,20 @@ export default class Application extends EventEmitter {
 
   initAutoLaunchManager () {
     this.autoLaunchManager = new AutoLaunchManager()
+  }
+
+  initDownloadScheduler () {
+    this.downloadScheduler = {
+      timer: null,
+      active: null
+    }
+  }
+
+  initNetworkRoutingManager () {
+    this.networkRouting = {
+      timer: null,
+      profile: null
+    }
   }
 
   initEnergyManager () {
@@ -491,6 +509,242 @@ export default class Application extends EventEmitter {
     this.engineClient.call('unpauseAll')
   }
 
+  parseTimeAsMinutes (value = '') {
+    const matched = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(`${value}`.trim())
+    if (!matched) {
+      return -1
+    }
+    const hour = Number(matched[1])
+    const minute = Number(matched[2])
+    return hour * 60 + minute
+  }
+
+  checkScheduleWindowMatched (windows = []) {
+    const now = new Date()
+    const nowMinutes = now.getHours() * 60 + now.getMinutes()
+
+    return windows.some((window = {}) => {
+      const startMinutes = this.parseTimeAsMinutes(window.start)
+      const endMinutes = this.parseTimeAsMinutes(window.end)
+      if (startMinutes < 0 || endMinutes < 0 || startMinutes === endMinutes) {
+        return false
+      }
+
+      // Cross-day range, e.g. 23:00-06:00
+      if (startMinutes > endMinutes) {
+        return nowMinutes >= startMinutes || nowMinutes < endMinutes
+      }
+
+      return nowMinutes >= startMinutes && nowMinutes < endMinutes
+    })
+  }
+
+  normalizeWeight (weight, fallback = 0) {
+    const value = Number(weight)
+    if (!Number.isFinite(value) || value < 0) {
+      return fallback
+    }
+    return value
+  }
+
+  toNumberInRange (value, min, max, fallback) {
+    const n = Number(value)
+    if (!Number.isFinite(n)) {
+      return fallback
+    }
+    if (n < min) {
+      return min
+    }
+    if (n > max) {
+      return max
+    }
+    return n
+  }
+
+  calcRoutingScore (iface = {}, weights = {}, mode = 'balanced') {
+    const {
+      latencyWeight = 0.45,
+      throughputWeight = 0.45,
+      privacyWeight = 0.1
+    } = weights
+
+    const latencyMs = this.toNumberInRange(iface.latencyMs, 1, 5000, 500)
+    const throughputMbps = this.toNumberInRange(iface.throughputMbps, 0.1, 10000, 1)
+    const privacyLevel = this.toNumberInRange(iface.privacyLevel, 0, 1, 0.5)
+    const metered = Boolean(iface.metered)
+
+    const latencyScore = 1 / latencyMs
+    const throughputScore = throughputMbps / 100
+    let privacyScore = privacyLevel
+
+    if (mode === 'privacy-first') {
+      privacyScore *= 1.2
+    }
+    if (mode === 'speed-first') {
+      privacyScore *= 0.8
+    }
+
+    let score = (
+      latencyScore * latencyWeight +
+      throughputScore * throughputWeight +
+      privacyScore * privacyWeight
+    )
+    if (metered) {
+      score *= 0.7
+    }
+    return score
+  }
+
+  computeBestRoutingProfile (policy = {}) {
+    const interfaces = Array.isArray(policy.interfaces) ? policy.interfaces : []
+    if (interfaces.length === 0) {
+      return null
+    }
+
+    const mode = policy.mode || 'balanced'
+    const allowMetered = Boolean(policy['allow-metered'])
+    const weights = {
+      latencyWeight: this.normalizeWeight(policy['latency-weight'], 0.45),
+      throughputWeight: this.normalizeWeight(policy['throughput-weight'], 0.45),
+      privacyWeight: this.normalizeWeight(policy['privacy-weight'], 0.1)
+    }
+
+    const candidate = interfaces
+      .filter((iface) => iface && iface.enabled !== false)
+      .filter((iface) => allowMetered || !iface.metered)
+      .map((iface) => ({
+        ...iface,
+        __score: this.calcRoutingScore(iface, weights, mode)
+      }))
+      .sort((a, b) => b.__score - a.__score)[0]
+
+    if (!candidate) {
+      return null
+    }
+
+    return {
+      interfaceName: candidate.name || 'default',
+      proxy: candidate.proxy || '',
+      mode,
+      score: candidate.__score
+    }
+  }
+
+  applyNetworkRoutingPolicy () {
+    const policy = this.configManager.getUserConfig('network-routing-policy', {})
+    const enabled = Boolean(policy && policy.enabled)
+    if (!enabled) {
+      if (this.networkRouting.profile) {
+        logger.info('[Motrix] network routing policy disabled, clear proxy override')
+        const reset = { 'all-proxy': '' }
+        this.configManager.setSystemConfig(reset)
+        this.engineClient.call('changeGlobalOption', reset)
+      }
+      this.networkRouting.profile = null
+      return
+    }
+
+    const profile = this.computeBestRoutingProfile(policy)
+    if (!profile) {
+      logger.warn('[Motrix] network routing policy enabled but no valid interface candidates')
+      return
+    }
+
+    const prev = this.networkRouting.profile
+    const changed = !prev ||
+      prev.interfaceName !== profile.interfaceName ||
+      prev.proxy !== profile.proxy ||
+      prev.mode !== profile.mode
+
+    if (!changed) {
+      return
+    }
+
+    logger.info('[Motrix] apply network routing profile:', profile)
+    this.networkRouting.profile = profile
+    const next = {
+      'all-proxy': profile.proxy || ''
+    }
+    this.configManager.setSystemConfig(next)
+    this.engineClient.call('changeGlobalOption', next)
+  }
+
+  startNetworkRoutingManager () {
+    this.stopNetworkRoutingManager()
+    this.applyNetworkRoutingPolicy()
+    this.networkRouting.timer = setInterval(() => {
+      this.applyNetworkRoutingPolicy()
+    }, ONE_MINUTE)
+  }
+
+  stopNetworkRoutingManager () {
+    if (this.networkRouting && this.networkRouting.timer) {
+      clearInterval(this.networkRouting.timer)
+      this.networkRouting.timer = null
+    }
+  }
+
+  watchNetworkRoutingPolicyChange () {
+    const { userConfig } = this.configManager
+    const key = 'network-routing-policy'
+    this.configListeners[key] = userConfig.onDidChange(key, async (newValue, oldValue) => {
+      logger.info(`[Motrix] detected ${key} value change event:`, newValue, oldValue)
+      this.applyNetworkRoutingPolicy()
+    })
+  }
+
+  runDownloadScheduler () {
+    const scheduler = this.configManager.getUserConfig('download-scheduler', {})
+    const {
+      enabled = false,
+      windows = []
+    } = scheduler || {}
+
+    if (!enabled || !Array.isArray(windows) || windows.length === 0) {
+      this.downloadScheduler.active = false
+      return
+    }
+
+    const inWindow = this.checkScheduleWindowMatched(windows)
+    if (this.downloadScheduler.active === inWindow) {
+      return
+    }
+
+    this.downloadScheduler.active = inWindow
+    if (inWindow) {
+      logger.info('[Motrix] download scheduler entered active window, resume all tasks')
+      this.engineClient.call('unpauseAll')
+      return
+    }
+
+    logger.info('[Motrix] download scheduler left active window, pause all tasks')
+    this.engineClient.call('pauseAll')
+  }
+
+  stopDownloadScheduler () {
+    if (this.downloadScheduler && this.downloadScheduler.timer) {
+      clearInterval(this.downloadScheduler.timer)
+      this.downloadScheduler.timer = null
+    }
+  }
+
+  startDownloadScheduler () {
+    this.stopDownloadScheduler()
+    this.runDownloadScheduler()
+    this.downloadScheduler.timer = setInterval(() => {
+      this.runDownloadScheduler()
+    }, ONE_MINUTE)
+  }
+
+  watchDownloadSchedulerChange () {
+    const { userConfig } = this.configManager
+    const key = 'download-scheduler'
+    this.configListeners[key] = userConfig.onDidChange(key, async (newValue, oldValue) => {
+      logger.info(`[Motrix] detected ${key} value change event:`, newValue, oldValue)
+      this.runDownloadScheduler()
+    })
+  }
+
   initWindowManager () {
     this.windowManager = new WindowManager({
       userConfig: this.configManager.getUserConfig()
@@ -578,6 +832,8 @@ export default class Application extends EventEmitter {
 
   stop () {
     try {
+      this.stopDownloadScheduler()
+      this.stopNetworkRoutingManager()
       const promises = [
         this.stopEngine(),
         this.shutdownUPnPManager(),
@@ -927,6 +1183,9 @@ export default class Application extends EventEmitter {
 
       this.autoResumeTask()
 
+      this.startDownloadScheduler()
+      this.startNetworkRoutingManager()
+
       this.adjustMenu()
     })
 
@@ -940,6 +1199,8 @@ export default class Application extends EventEmitter {
     this.watchProxyChange()
     this.watchLocaleChange()
     this.watchThemeChange()
+    this.watchDownloadSchedulerChange()
+    this.watchNetworkRoutingPolicyChange()
 
     this.on('download-status-change', (downloading) => {
       this.trayManager.handleDownloadStatusChange(downloading)

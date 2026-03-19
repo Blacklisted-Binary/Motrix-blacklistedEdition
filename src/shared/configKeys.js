@@ -18,6 +18,7 @@ const userKeys = [
   'log-level',
   'new-task-show-downloading',
   'no-confirm-before-delete-task',
+  'network-routing-policy',
   'open-at-login',
   'protocols',
   'proxy',

@@ -130,6 +130,15 @@ export default class ConfigManager {
         'locale': app.getLocale(),
         'log-level': 'warn',
         'new-task-show-downloading': true,
+        'network-routing-policy': {
+          'enabled': false,
+          'mode': 'balanced',
+          'allow-metered': false,
+          'latency-weight': 0.45,
+          'throughput-weight': 0.45,
+          'privacy-weight': 0.1,
+          'interfaces': []
+        },
         'no-confirm-before-delete-task': false,
         'open-at-login': false,
         'protocols': { 'magnet': true, 'thunder': false },
