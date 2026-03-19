@@ -11,6 +11,7 @@
         @row-dblclick="handleRowDbClick"
         @selection-change="handleSelectionChange">
         <el-table-column
+          v-if="selectable"
           type="selection"
           width="42">
         </el-table-column>
@@ -121,6 +122,10 @@
         default: function () {
           return []
         }
+      },
+      selectable: {
+        type: Boolean,
+        default: true
       }
     },
     data () {
@@ -200,7 +205,10 @@
         this.toggleSelection(filtered)
       },
       handleRowDbClick (row, column, event) {
-        this.$refs.torrentTable.toggleRowSelection(row)
+        if (this.selectable) {
+          this.$refs.torrentTable.toggleRowSelection(row)
+        }
+        this.$emit('row-dblclick', row)
       },
       handleSelectionChange (val) {
         this.selectedFiles = val

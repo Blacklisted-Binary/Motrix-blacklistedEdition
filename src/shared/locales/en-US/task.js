@@ -104,6 +104,8 @@ export default {
   'remaining-prefix': 'Remaining',
   'select-torrent': 'Drag torrent file here, or click to select',
   'task-detail-title': 'Task Details',
+  'media-player-empty': 'No playable media file available in this task',
+  'media-player-not-supported': 'Selected file cannot be previewed by the built-in player',
   'task-info-dialog-title': '{{title}} Details',
   'download-start-message': 'Started downloading {{taskName}}',
   'download-pause-message': 'Paused downloading {{taskName}}',

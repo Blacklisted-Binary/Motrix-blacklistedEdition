@@ -113,6 +113,7 @@ export default class ConfigManager {
         'auto-check-update': is.macOS(),
         'auto-hide-window': false,
         'auto-sync-tracker': true,
+        'built-in-media-player': true,
         'download-scheduler': {
           'enabled': false,
           'timezone': 'local',

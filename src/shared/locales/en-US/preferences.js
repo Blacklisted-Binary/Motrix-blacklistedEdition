@@ -44,6 +44,7 @@ export default {
   'run-mode-hide-tray': 'Hide Tray Application',
   'tray-speedometer': 'Show the real-time speed in the menu bar tray',
   'show-progress-bar': 'Show download progress bar',
+  'built-in-media-player': 'Enable built-in media player (preview playable media in app)',
   'language': 'Language',
   'change-language': 'Change language',
   'hide-app-menu': 'Hide App Menu (Windows & Linux Only)',

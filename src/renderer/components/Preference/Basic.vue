@@ -48,6 +48,11 @@
               {{ $t('preferences.show-progress-bar') }}
             </el-checkbox>
           </el-col>
+          <el-col class="form-item-sub" :span="16">
+            <el-checkbox v-model="form.builtInMediaPlayer">
+              {{ $t('preferences.built-in-media-player') }}
+            </el-checkbox>
+          </el-col>
         </el-form-item>
         <el-form-item
           v-if="isMac"
@@ -326,6 +331,7 @@
       autoHideWindow,
       btForceEncryption,
       btSaveMetadata,
+      builtInMediaPlayer,
       dir,
       engineMaxConnectionPerServer,
       followMetalink,
@@ -361,6 +367,7 @@
       btAutoDownloadContent,
       btForceEncryption,
       btSaveMetadata,
+      builtInMediaPlayer,
       continue: config.continue,
       dir,
       engineMaxConnectionPerServer,

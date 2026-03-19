@@ -2,6 +2,7 @@ const userKeys = [
   'auto-check-update',
   'auto-hide-window',
   'auto-sync-tracker',
+  'built-in-media-player',
   'cookie',
   'enable-upnp',
   'download-scheduler',
