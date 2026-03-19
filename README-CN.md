@@ -56,13 +56,12 @@ brew update && brew install motrix
 ```
 
 #### 自动更新
-Motrix v1.8.0+ 版本更改了应用 BundleID ( `net.agalwood.Motrix` => `app.motrix.native` ), Motrix v1.6.11 的自动更新会因为签名不一致而失败。[Motrix 安装助手](https://github.com/motrixapp/motrix-install-assistant)将帮助您安装最新的 Motrix 应用程序。
+Motrix v1.8.0+ 版本更改了应用 BundleID ( `net.agalwood.Motrix` => `app.motrix.native` )，Motrix v1.6.11 的自动更新可能会因为签名不一致而失败。
 
-<p>
-  <a href="https://github.com/motrixapp/motrix-install-assistant">
-    <img src="https://raw.githubusercontent.com/motrixapp/motrix-install-assistant/main/build/256x256.png" width="192" alt="Motrix Install Assistant Icon" />
-  </a>
-</p>
+对于本仓库（Motrix-blacklistedEdition），请使用仓库内置安装助手文档：
+
+- [安装助手文档（Motrix-blacklistedEdition）](./docs/INSTALL_ASSISTANT.md)
+- [最新版本发布页面](https://github.com/Blacklisted-Binary/Motrix-blacklistedEdition/releases)
 
 ### Linux
 

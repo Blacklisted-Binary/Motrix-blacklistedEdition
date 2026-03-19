@@ -57,13 +57,12 @@ brew update && brew install motrix
 
 #### Auto Update
 
-Since Motrix v1.8.0 and later versions changed the App BundleID ( `net.agalwood.Motrix` => `app.motrix.native` ), the automatic update of Motrix v1.6.11 will fail. [Motrix Install Assistant](https://github.com/motrixapp/motrix-install-assistant) will help you install the latest Motrix application.
+Since Motrix v1.8.0 and later versions changed the App BundleID ( `net.agalwood.Motrix` => `app.motrix.native` ), automatic update of Motrix v1.6.11 may fail.
 
-<p>
-  <a href="https://github.com/motrixapp/motrix-install-assistant">
-    <img src="https://raw.githubusercontent.com/motrixapp/motrix-install-assistant/main/build/256x256.png" width="192" alt="Motrix Install Assistant Icon" />
-  </a>
-</p>
+For this repository/fork, use the in-repo install assistant guide:
+
+- [Install Assistant (Motrix-blacklistedEdition)](./docs/INSTALL_ASSISTANT.md)
+- [Latest Release Artifacts](https://github.com/Blacklisted-Binary/Motrix-blacklistedEdition/releases)
 
 ### Linux
 
