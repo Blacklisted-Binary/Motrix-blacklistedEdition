@@ -28,7 +28,7 @@ This in-repo install assistant replaces the old external helper workflow and is 
 - Chocolatey: `choco upgrade motrix`
 - Scoop: `scoop update motrix`
 
-> Package manager indexes may lag behind the latest fork release. Prefer the GitHub Release installer when immediate upgrade is required.
+> Package manager indexes may lag behind the latest fork Release. Prefer the GitHub Release installer when immediate upgrade is required.
 
 ## macOS install / upgrade
 
