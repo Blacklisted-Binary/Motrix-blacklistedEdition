@@ -347,6 +347,11 @@ export default class Api {
     return this.client.call('removeDownloadResult', ...args)
   }
 
+  changePosition (params = {}) {
+    const { gid, pos, how = 'POS_SET' } = params
+    return this.client.call('changePosition', gid, pos, how)
+  }
+
   multicall (method, params = {}) {
     let { gids, options = {} } = params
     options = formatOptionsForEngine(options)

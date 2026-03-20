@@ -964,6 +964,10 @@ export default class Application extends EventEmitter {
       app.addRecentDocument(path)
     })
 
+    this.on('progress-change', (progress) => {
+      this.trayManager.handleProgressChange(progress)
+    })
+
     if (this.configManager.userConfig.get('show-progress-bar')) {
       this.bindProgressChange()
     }

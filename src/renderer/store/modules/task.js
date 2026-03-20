@@ -300,6 +300,24 @@ const actions = {
         dispatch('fetchList')
         dispatch('saveSession')
       })
+  },
+  moveTaskUp ({ dispatch }, task) {
+    const { gid, status } = task
+    const { WAITING, PAUSED } = TASK_STATUS
+    if (![WAITING, PAUSED].includes(status)) {
+      return Promise.resolve()
+    }
+    return api.changePosition({ gid, pos: -1, how: 'POS_CUR' })
+      .finally(() => dispatch('fetchList'))
+  },
+  moveTaskDown ({ dispatch }, task) {
+    const { gid, status } = task
+    const { WAITING, PAUSED } = TASK_STATUS
+    if (![WAITING, PAUSED].includes(status)) {
+      return Promise.resolve()
+    }
+    return api.changePosition({ gid, pos: 1, how: 'POS_CUR' })
+      .finally(() => dispatch('fetchList'))
   }
 }
 

@@ -146,11 +146,27 @@ const deleteTask = () => {
 }
 
 const moveTaskUp = () => {
-  showUnderDevelopmentMessage()
+  const { selectedGidList, taskList } = store.state.task
+  if (selectedGidList.length === 0) {
+    return
+  }
+  const gid = selectedGidList[0]
+  const task = taskList.find((t) => t.gid === gid)
+  if (task) {
+    store.dispatch('task/moveTaskUp', task)
+  }
 }
 
 const moveTaskDown = () => {
-  showUnderDevelopmentMessage()
+  const { selectedGidList, taskList } = store.state.task
+  if (selectedGidList.length === 0) {
+    return
+  }
+  const gid = selectedGidList[0]
+  const task = taskList.find((t) => t.gid === gid)
+  if (task) {
+    store.dispatch('task/moveTaskDown', task)
+  }
 }
 
 const pauseAllTask = () => {
