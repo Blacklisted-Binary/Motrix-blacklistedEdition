@@ -332,6 +332,19 @@ export default class TrayManager extends EventEmitter {
     this.renderTray()
   }
 
+  handleProgressChange (progress) {
+    if (!tray) {
+      return
+    }
+
+    let tooltip = 'Motrix'
+    if (progress >= 0 && progress <= 1) {
+      const percent = Math.round(progress * 100)
+      tooltip = `Motrix - ${percent}%`
+    }
+    tray.setToolTip(tooltip)
+  }
+
   async handleSpeedChange ({ uploadSpeed, downloadSpeed }) {
     if (!this.speedometer) {
       return

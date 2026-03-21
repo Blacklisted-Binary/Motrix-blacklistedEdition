@@ -63,6 +63,8 @@ export default {
   'resume-task': 'Resume Task',
   'resume-task-success': 'Successfully resumed task "{{taskName}}"',
   'resume-task-fail': 'Failed to resume task "{{taskName}}"',
+  'restart-task': 'Restart Task',
+  'stop-seeding': 'Stop Seeding',
   'delete-task': 'Delete Task',
   'delete-selected-tasks': 'Delete Selected Tasks',
   'delete-task-confirm': 'Are you sure you want to remove download task "{{taskName}}"?',

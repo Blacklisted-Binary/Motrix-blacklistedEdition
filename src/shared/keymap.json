@@ -5,6 +5,11 @@
   "cmdctrl-o": "application:open-file",
   "cmdctrl-l": "application:task-list",
   "cmdctrl-,": "application:preferences",
+  "cmdctrl-p": "application:pause-task",
+  "cmdctrl-r": "application:resume-task",
+  "cmdctrl-backspace": "application:delete-task",
+  "alt-up": "application:move-task-up",
+  "alt-down": "application:move-task-down",
   "cmdctrl-shift-p": "application:pause-all-task",
   "cmdctrl-shift-r": "application:resume-all-task",
   "ctrl-shift-a": "application:select-all-task"

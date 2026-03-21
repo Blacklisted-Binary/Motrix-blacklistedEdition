@@ -63,6 +63,8 @@ export default {
   'resume-task': '恢复任务',
   'resume-task-success': '恢复任务 "{{taskName}}" 成功',
   'resume-task-fail': '恢复任务 "{{taskName}}" 失败',
+  'restart-task': '重新下载',
+  'stop-seeding': '停止做种',
   'delete-task': '移除任务',
   'delete-selected-tasks': '移除选中的任务',
   'delete-task-confirm': '你确定要移除 "{{taskName}}" 下载任务吗?',

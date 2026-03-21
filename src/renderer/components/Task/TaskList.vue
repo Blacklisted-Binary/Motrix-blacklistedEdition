@@ -1,25 +1,29 @@
 <template>
-  <mo-drag-select
-    class="task-list"
-    v-if="taskList.length > 0"
-    attribute="attr"
-    @change="handleDragSelectChange"
-  >
-    <div
-      v-for="item in taskList"
-      :key="item.gid"
-      :attr="item.gid"
-      :class="getItemClass(item)"
+  <div class="task-list-container">
+    <mo-drag-select
+      class="task-list"
+      v-if="taskList.length > 0"
+      attribute="attr"
+      @change="handleDragSelectChange"
     >
-      <mo-task-item
-        :task="item"
-      />
+      <div
+        v-for="item in taskList"
+        :key="item.gid"
+        :attr="item.gid"
+        :class="getItemClass(item)"
+        @contextmenu.prevent="(e) => showContextMenu(e, item)"
+      >
+        <mo-task-item
+          :task="item"
+        />
+      </div>
+    </mo-drag-select>
+    <div class="no-task" v-else>
+      <div class="no-task-inner">
+        {{ $t('task.no-task') }}
+      </div>
     </div>
-  </mo-drag-select>
-  <div class="no-task" v-else>
-    <div class="no-task-inner">
-      {{ $t('task.no-task') }}
-    </div>
+    <mo-task-context-menu ref="contextMenu" />
   </div>
 </template>
 
@@ -28,12 +32,14 @@
   import { cloneDeep } from 'lodash'
   import DragSelect from '@/components/DragSelect/Index'
   import TaskItem from './TaskItem'
+  import TaskContextMenu from './TaskContextMenu'
 
   export default {
     name: 'mo-task-list',
     components: {
       [DragSelect.name]: DragSelect,
-      [TaskItem.name]: TaskItem
+      [TaskItem.name]: TaskItem,
+      [TaskContextMenu.name]: TaskContextMenu
     },
     data () {
       const selectedList = cloneDeep(this.$store.state.task.selectedList) || []
@@ -57,6 +63,13 @@
         return {
           selected: isSelected
         }
+      },
+      showContextMenu (event, task) {
+        this.$refs.contextMenu.show({
+          x: event.clientX,
+          y: event.clientY,
+          task
+        })
       }
     },
     watch: {
@@ -68,6 +81,10 @@
 </script>
 
 <style lang="scss">
+.task-list-container {
+  height: 100%;
+  position: relative;
+}
 .task-list {
   padding: 16px 16px 64px;
   min-height: 100%;
