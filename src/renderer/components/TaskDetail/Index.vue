@@ -43,6 +43,16 @@
           @selection-change="handleSelectionChange"
         />
       </el-tab-pane>
+      <el-tab-pane name="player" lazy v-if="enableBuiltInMediaPlayer">
+        <template #label><span class="task-detail-tab-label">▶</span></template>
+        <mo-task-files
+          mode="DETAIL"
+          :files="mediaFileList"
+          :selectable="false"
+          @row-dblclick="handleMediaFileDblClick"
+        />
+        <mo-task-media-player :active-file="activeMediaFile" />
+      </el-tab-pane>
     </el-tabs>
     <div class="task-detail-actions">
       <div class="action-wrapper action-wrapper-left" v-if="optionsChanged">
@@ -73,10 +83,12 @@
     getFileExtension
   } from '@shared/utils'
   import {
+    AUDIO_SUFFIXES,
     EMPTY_STRING,
     NONE_SELECTED_FILES,
     SELECTED_ALL_FILES,
-    TASK_STATUS
+    TASK_STATUS,
+    VIDEO_SUFFIXES
   } from '@shared/constants'
   import TaskItemActions from '@/components/Task/TaskItemActions'
   import TaskGeneral from './TaskGeneral'
@@ -84,6 +96,7 @@
   import TaskTrackers from './TaskTrackers'
   import TaskPeers from './TaskPeers'
   import TaskFiles from './TaskFiles'
+  import TaskMediaPlayer from './TaskMediaPlayer'
 
   const cached = {
     files: []
@@ -97,7 +110,8 @@
       [TaskActivity.name]: TaskActivity,
       [TaskTrackers.name]: TaskTrackers,
       [TaskPeers.name]: TaskPeers,
-      [TaskFiles.name]: TaskFiles
+      [TaskFiles.name]: TaskFiles,
+      [TaskMediaPlayer.name]: TaskMediaPlayer
     },
     props: {
       gid: {
@@ -133,7 +147,8 @@
         graphicWidth: 0,
         optionsChanged: false,
         filesSelection: EMPTY_STRING,
-        selectionChangedCount: 0
+        selectionChangedCount: 0,
+        activeMediaFile: null
       }
     },
     computed: {
@@ -183,6 +198,16 @@
         const result = fileList.filter((item) => item.selected)
 
         return result
+      },
+      mediaFileList () {
+        const { fileList } = this
+        return fileList.filter((item) => {
+          const ext = (item.extension || '').toLowerCase()
+          return AUDIO_SUFFIXES.includes(ext) || VIDEO_SUFFIXES.includes(ext)
+        })
+      },
+      enableBuiltInMediaPlayer () {
+        return Boolean(this.$store.state.preference.config.builtInMediaPlayer)
       }
     },
     mounted () {
@@ -195,6 +220,16 @@
     watch: {
       gid () {
         cached.files = []
+        this.activeMediaFile = null
+      },
+      mediaFileList (list) {
+        if (!Array.isArray(list) || list.length === 0) {
+          this.activeMediaFile = null
+          return
+        }
+        if (!this.activeMediaFile || !list.find((item) => item.path === this.activeMediaFile.path)) {
+          this.activeMediaFile = list[0]
+        }
       }
     },
     methods: {
@@ -274,6 +309,9 @@
         if (this.selectionChangedCount > 1) {
           this.optionsChanged = true
         }
+      },
+      handleMediaFileDblClick (row) {
+        this.activeMediaFile = row
       },
       resetFaskFilesSelection () {
         this.filesSelection = EMPTY_STRING
